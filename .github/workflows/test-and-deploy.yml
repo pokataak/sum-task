@@ -1,0 +1,31 @@
+name: Test and Deploy
+
+on:
+  push:
+    branches: [source]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - run: npm install
+      - run: npm test
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: success()
+    steps:
+      - uses: actions/checkout@v4
+      - run: rm -f solution.js
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git checkout -b main || git checkout main
+          git add .
+          git commit -m "Deploy" || echo "No changes"
+          git push --force origin main
